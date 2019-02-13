@@ -114,7 +114,8 @@ public class Main extends RePlugin implements SimpleListener {
             FileWriter fw = new FileWriter(filename, true);
             BufferedWriter bw = new BufferedWriter(fw);
 
-            String line = pos + " :: " + time;
+            long now = System.currentTimeMillis();
+            String line = now + ": " + pos + " :: " + time;
             if(firstChatMsg != null)
                 line += " :: " + firstChatMsg + " :: " + lastChatMsg;
 
