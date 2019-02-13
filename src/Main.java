@@ -36,10 +36,8 @@ public class Main extends RePlugin implements SimpleListener {
     @Override
     public void onPluginEnable() {
         executor.scheduleAtFixedRate(() -> {
-            if (ReClient.ReClientCache.INSTANCE.playerListEntries.size() != 0) {
-                testForData();
-            }
-        }, 500L, 500L, TimeUnit.MILLISECONDS);
+            testForData();
+        }, 5000L, 5000L, TimeUnit.MILLISECONDS);
     }
 
     @SimpleEventHandler
@@ -85,9 +83,13 @@ public class Main extends RePlugin implements SimpleListener {
 
             // if it was able to parse the pos the data is saveable and the bot can be restarted
 
-            save(position, time);
 
+            String last = lastChatMsg;
+            String first = firstChatMsg;
             getReMinecraft().reLaunch();
+            save(position, time, last, first);
+
+
 
         } catch(Exception e){
             //logger.log("e: " + e);
@@ -98,13 +100,13 @@ public class Main extends RePlugin implements SimpleListener {
 
     }
 
-    public void save(int pos, String time){
+    public void save(int pos, String time, String last, String first){
 
         Path currentRelativePath = Paths.get("");
         String s = currentRelativePath.toAbsolutePath().toString();
 
         String filename = s + "/data/QueueLengthLog" + LocalDateTime.now().getYear() + "-" + LocalDateTime.now().getMonthValue() + "-" + LocalDateTime.now().getDayOfMonth() + ".txt";
-        logger.log("[SpeedLogger]: flushing data: " + pos + " and " + time + " " + firstChatMsg + " " + lastChatMsg);
+        logger.log("[SpeedLogger]: flushing data: " + pos + " and " + time + " " + first + " " + last);
         try {
 
             File f = new File(filename);
@@ -116,8 +118,8 @@ public class Main extends RePlugin implements SimpleListener {
 
             long now = System.currentTimeMillis();
             String line = now + ": " + pos + " :: " + time;
-            if(firstChatMsg != null)
-                line += " :: " + firstChatMsg + " :: " + lastChatMsg;
+            if(first != null)
+                line += " :: " + first + " :: " + last;
 
             bw.newLine();
             bw.write(line);
@@ -134,6 +136,9 @@ public class Main extends RePlugin implements SimpleListener {
 
     @Override
     public void onPluginDisable() {
+        lastChatMsg = null;
+        firstChatMsg = null;
+
 
     }
 
