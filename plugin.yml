@@ -1,0 +1,6 @@
+name: "QueueLength"
+description: "It rejoins the queue every time and always saves the queue length and the estimated time"
+authors:
+  - "IronException"
+version: "1.0"
+mainClass: "Main"
