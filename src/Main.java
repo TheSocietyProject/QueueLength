@@ -19,6 +19,10 @@ import java.util.concurrent.TimeUnit;
 
 public class Main extends RePlugin implements SimpleListener {
 
+    private boolean restarting = false;
+
+    private boolean onServer = false;
+
     private String lastChatMsg, firstChatMsg;
 
     public static final String queueMsg = "Position in queue: ";
@@ -37,13 +41,16 @@ public class Main extends RePlugin implements SimpleListener {
     public void onPluginEnable() {
         executor.scheduleAtFixedRate(() -> {
             testForData();
-        }, 5000L, 5000L, TimeUnit.MILLISECONDS);
+        }, 2000L, 500L, TimeUnit.MILLISECONDS);
     }
 
     @SimpleEventHandler
     public void onEvent(ChatReceivedEvent e){
         String msg = e.getMessageText();
         long time = e.getTimeRecieved();
+
+        if(msg.startsWith("<"))
+            onServer = true;
 
         if(msg.startsWith(Main.queueMsg))
             lastChatMsg = time + ": " + msg.split(Main.queueMsg)[1];
@@ -54,6 +61,11 @@ public class Main extends RePlugin implements SimpleListener {
     }
 
     public void testForData(){
+        if(restarting)
+            return;
+
+
+
         String[] lines = ReClient.ReClientCache.INSTANCE.tabHeader.getFullText().split("\n");
 
 
@@ -72,6 +84,10 @@ public class Main extends RePlugin implements SimpleListener {
         int position = -1;
         String time = null;
 
+        if(onServer)
+            restart(-1, "already joined the server");
+
+
         try{
 
             String pos = lines[5].split(": ")[1];
@@ -83,11 +99,7 @@ public class Main extends RePlugin implements SimpleListener {
 
             // if it was able to parse the pos the data is saveable and the bot can be restarted
 
-
-            String last = lastChatMsg;
-            String first = firstChatMsg;
-            getReMinecraft().reLaunch();
-            save(position, time, last, first);
+            restart(position, time);
 
 
 
@@ -100,13 +112,25 @@ public class Main extends RePlugin implements SimpleListener {
 
     }
 
+
+    public void restart(int pos, String time){
+
+        // restarting var so it doesnt save anything additional while restarting
+        restarting = true;
+        save(pos, time, lastChatMsg, firstChatMsg);
+        getReMinecraft().reLaunch();
+        restarting = false;
+
+
+    }
+
     public void save(int pos, String time, String last, String first){
 
         Path currentRelativePath = Paths.get("");
         String s = currentRelativePath.toAbsolutePath().toString();
 
         String filename = s + "/data/QueueLengthLog" + LocalDateTime.now().getYear() + "-" + LocalDateTime.now().getMonthValue() + "-" + LocalDateTime.now().getDayOfMonth() + ".txt";
-        logger.log("[SpeedLogger]: flushing data: " + pos + " and " + time + " " + first + " " + last);
+        logger.log("flushing data: " + pos + " and " + time + " " + first + " " + last);
         try {
 
             File f = new File(filename);
