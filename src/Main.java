@@ -61,9 +61,17 @@ public class Main extends RePlugin implements SimpleListener {
     }
 
     public void testForData(){
-        if(restarting)
+        if(restarting){
             return;
+        }
+        restarting = true;
 
+
+        if(onServer) {
+            restart(-1, "already joined the server");
+            onServer = false;
+            return;
+        }
 
 
         String[] lines = ReClient.ReClientCache.INSTANCE.tabHeader.getFullText().split("\n");
@@ -84,8 +92,6 @@ public class Main extends RePlugin implements SimpleListener {
         int position = -1;
         String time = null;
 
-        if(onServer)
-            restart(-1, "already joined the server");
 
 
         try{
@@ -98,7 +104,6 @@ public class Main extends RePlugin implements SimpleListener {
             position = Integer.parseInt(pos);
 
             // if it was able to parse the pos the data is saveable and the bot can be restarted
-
             restart(position, time);
 
 
@@ -109,7 +114,7 @@ public class Main extends RePlugin implements SimpleListener {
         }
 
 
-
+        restarting = false;
     }
 
 
