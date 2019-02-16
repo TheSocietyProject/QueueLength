@@ -1,5 +1,6 @@
 import com.sasha.eventsys.SimpleEventHandler;
 import com.sasha.eventsys.SimpleListener;
+import com.sasha.reminecraft.Configuration;
 import com.sasha.reminecraft.api.RePlugin;
 import com.sasha.reminecraft.api.event.ChatReceivedEvent;
 import com.sasha.reminecraft.client.ReClient;
@@ -19,18 +20,19 @@ import java.util.concurrent.TimeUnit;
 
 public class Main extends RePlugin implements SimpleListener {
 
-    private boolean restarting = false;
+    public static final String queueMsg = "Position in queue: ";
+
 
     private boolean onServer = false;
 
     private String lastChatMsg, firstChatMsg;
 
-    public static final String queueMsg = "Position in queue: ";
 
 
     public ILogger logger = LoggerBuilder.buildProperLogger("QueueLengthLog");
 
-    private ScheduledExecutorService executor = Executors.newScheduledThreadPool(2);
+    private ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
+
 
     @Override
     public void onPluginInit() {
@@ -60,12 +62,7 @@ public class Main extends RePlugin implements SimpleListener {
 
     }
 
-    public void testForData(){
-        if(restarting){
-            return;
-        }
-        restarting = true;
-
+    public synchronized void testForData(){
 
         if(onServer) {
             restart(-1, "already joined the server");
@@ -78,7 +75,7 @@ public class Main extends RePlugin implements SimpleListener {
 
 
         /*
-        [QueueSpeedometerPlugin / INFO] tabHeaderText:
+        tabHeaderText:
             º7ºoºl2BUILDERSºr
             º7ºoºl2TOOLS     ºr
 
@@ -114,18 +111,16 @@ public class Main extends RePlugin implements SimpleListener {
         }
 
 
-        restarting = false;
     }
 
 
-    public void restart(int pos, String time){
+    public synchronized void restart(int pos, String time){
 
-        // restarting var so it doesnt save anything additional while restarting
-        restarting = true;
         save(pos, time, lastChatMsg, firstChatMsg);
         getReMinecraft().reLaunch();
-        restarting = false;
 
+        lastChatMsg = null;
+        firstChatMsg = null;
 
     }
 
@@ -165,9 +160,6 @@ public class Main extends RePlugin implements SimpleListener {
 
     @Override
     public void onPluginDisable() {
-        lastChatMsg = null;
-        firstChatMsg = null;
-
 
     }
 
@@ -186,3 +178,4 @@ public class Main extends RePlugin implements SimpleListener {
 
     }
 }
+
