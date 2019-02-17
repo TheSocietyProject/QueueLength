@@ -1,11 +1,12 @@
 import com.sasha.eventsys.SimpleEventHandler;
 import com.sasha.eventsys.SimpleListener;
-import com.sasha.reminecraft.Configuration;
+import com.sasha.reminecraft.ReMinecraft;
 import com.sasha.reminecraft.api.RePlugin;
 import com.sasha.reminecraft.api.event.ChatReceivedEvent;
 import com.sasha.reminecraft.client.ReClient;
 import com.sasha.reminecraft.logging.ILogger;
 import com.sasha.reminecraft.logging.LoggerBuilder;
+import com.sasha.reminecraft.util.TextMessageColoured;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -93,12 +94,20 @@ public class Main extends RePlugin implements SimpleListener {
 
         try{
 
-            String pos = lines[5].split(": ")[1];
+            if(!lines[1].equals("QueueLengthData saved: "))
+                ReClient.ReClientCache.INSTANCE.tabHeader = TextMessageColoured.from("\n&7 QueueLengthData saving\n");
+
+
+                String pos = lines[5].split(": ")[1];
             pos = pos.substring(2);
 
             time = lines[6].split(": ")[1].substring(2);
 
             position = Integer.parseInt(pos);
+
+
+            ReClient.ReClientCache.INSTANCE.tabHeader = TextMessageColoured.from("\nQueueLengthData saved: \n" + position + " " + time + "\n");
+
 
             // if it was able to parse the pos the data is saveable and the bot can be restarted
             restart(position, time);
@@ -114,10 +123,12 @@ public class Main extends RePlugin implements SimpleListener {
     }
 
 
-    public synchronized void restart(int pos, String time){
+    public void restart(int pos, String time){
 
         save(pos, time, lastChatMsg, firstChatMsg);
-        getReMinecraft().reLaunch();
+
+        ReconnectManager.reconnect();
+        logger.log("should have restarted now...");
 
         lastChatMsg = null;
         firstChatMsg = null;
