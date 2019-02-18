@@ -26,13 +26,13 @@ public class Main extends RePlugin implements SimpleListener {
 
     private boolean onServer = false;
 
-    private String lastChatMsg, firstChatMsg;
+    private String lastChatMsg, firstChatMsg, zwForFirst;
 
 
 
     public ILogger logger = LoggerBuilder.buildProperLogger("QueueLengthLog");
 
-    private ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
+    private ScheduledExecutorService executor = Executors.newScheduledThreadPool(2);
 
 
     @Override
@@ -48,18 +48,35 @@ public class Main extends RePlugin implements SimpleListener {
     }
 
     @SimpleEventHandler
-    public void onEvent(ChatReceivedEvent e){
-        String msg = e.getMessageText();
-        long time = e.getTimeRecieved();
+    public void onEvent(ChatReceivedEvent e) {
 
-        if(msg.startsWith("<"))
+        handleMsg(e.getMessageText(), e.getTimeRecieved());
+
+
+
+    }
+
+
+    public void handleMsg(String msg, long time){
+        if(zwForFirst != null)
+            firstChatMsg = zwForFirst;
+
+
+        if (msg.startsWith("<"))
             onServer = true;
 
-        if(msg.startsWith(Main.queueMsg))
-            lastChatMsg = time + ": " + msg.split(Main.queueMsg)[1];
+        lastChatMsg = time + ": " + msg;
 
-        if(firstChatMsg == null)
+        if (firstChatMsg == null)
             firstChatMsg = lastChatMsg;
+
+        if (firstChatMsg.split(": ")[1].startsWith(Main.queueMsg.split(": ")[0]))
+            return;
+
+        if(lastChatMsg.split(": ")[1].startsWith(Main.queueMsg.split(": ")[0]))
+            zwForFirst = lastChatMsg;
+
+
 
     }
 
@@ -132,6 +149,7 @@ public class Main extends RePlugin implements SimpleListener {
 
         lastChatMsg = null;
         firstChatMsg = null;
+        zwForFirst = null;
 
     }
 
